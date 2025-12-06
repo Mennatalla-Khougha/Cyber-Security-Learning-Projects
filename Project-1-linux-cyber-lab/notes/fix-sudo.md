@@ -5,7 +5,7 @@ sudo cp /etc/sudoers ~/sudoers.backup
 
 ### Boot Ubuntu into recovery mood
 - Advanced options for ubuntu
-- recovery mood
+- recovery mode
 
 #### If there is a sudoers backup file 
 ```

@@ -1,5 +1,5 @@
 ## ACL: Access Control List
-- Gine grained permission for users & groups
+- Fine-grained permission for users & groups
 ```
 sudo apt install -y acl
 ```
@@ -17,6 +17,6 @@ sudo setfacl -m g:<group>:<permissions> <file/dir-name>
 ```
 
 ```
-getfacl <file/die-name>
+getfacl <file/dir-name>
 ```
 
