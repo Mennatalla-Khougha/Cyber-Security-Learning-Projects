@@ -414,3 +414,216 @@ grep "Failed password" "$LOG" | awk '{print $11}' | sort | uniq -c | sort -nr
   ssh-keygen -t ed25519
 
   ```
+**Done when**
+
+* Root cannot log in via SSH.
+
+* Password login is disabled.
+
+* You can still log in over SSH using key-based auth on port 2222.
+
+---
+
+## 4.2 System Hardening Basics
+### Tasks
+- List enabled services:
+  ```bash
+  systemctl list-unit-files --type=service | grep enabled
+  ```
+- Identify unnecessary services (examples: `cups`, `avahi-daemon`)
+- Disable an unwanted service:
+  ```bash
+  sudo systemctl disable --now cups
+  ```
+- Configure stronger password policy:
+  - Edit `/etc/login.defs` → increase `PASS_MIN_LEN` to 10 or more
+  - Edit `/etc/pam.d/common-password` → enforce password history & complexity
+- Document every change in `notes/system-hardening.md`
+
+**Done when**
+- Only essential services remain enabled
+- Password policy is stricter than default
+- All changes are documented
+
+---
+
+## 4.3 Firewall Hardening
+### Tasks
+- Ensure firewall defaults:
+  ```bash
+  sudo ufw default deny incoming
+  sudo ufw default allow outgoing
+  ```
+- Allow required services only:
+  ```bash
+  sudo ufw allow 2222/tcp   # SSH on hardened port
+  ```
+- Delete unneeded rules:
+  ```bash
+  sudo ufw status numbered
+  sudo ufw delete <rule-number>
+  ```
+- Export final ruleset:
+  ```bash
+  sudo ufw status verbose > configs/ufw-rules.txt
+  ```
+
+**Done when**
+- Firewall contains ONLY the rules you can justify
+- SSH (port 2222) works properly
+
+---
+
+## 4.4 Security Scanning with Lynis
+### Tasks
+- Install Lynis and run initial audit:
+  ```bash
+  sudo apt install -y lynis
+  sudo lynis audit system | tee ~/lynis-initial.txt
+  ```
+- Choose 5–10 warnings to fix (SSH settings, password policy, logging, firewall)
+- Apply the fixes
+- Run second audit:
+  ```bash
+  sudo lynis audit system | tee ~/lynis-after.txt
+  ```
+- Compare scores and results
+- Document findings in `notes/lynis-hardening.md`
+
+**Done when**
+- Initial and final Lynis logs exist
+- At least several warnings are successfully fixed
+
+---
+
+# 5️⃣ Break–Fix Challenges
+You will now *intentionally break your system* and learn how to recover.
+Always take a snapshot before each challenge.
+
+---
+
+## Challenge 1 — Break SSH
+### Tasks
+- Break SSH by adding an invalid directive to `/etc/ssh/sshd_config`
+- Attempt SSH from host → it should fail
+- Log in locally using VM console
+- Fix configuration and restart SSH:
+  ```bash
+  sudo systemctl restart ssh
+  ```
+- Confirm remote SSH works again
+
+---
+
+## Challenge 2 — Break Networking
+### Tasks
+- Remove default route:
+  ```bash
+  sudo ip route del default
+  ```
+- Test: `ping 8.8.8.8` should fail
+- Restore networking by adding correct default route or fixing netplan config
+- Confirm connectivity is restored
+
+---
+
+## Challenge 3 — Break sudo
+### Tasks
+- Break `/etc/sudoers` with nano (syntax error)
+- Confirm: `sudo` fails
+- Boot recovery mode OR switch to root session
+- Restore from backup:
+  ```bash
+  sudo cp ~/sudoers.backup /etc/sudoers
+  ```
+- Confirm sudo works again
+
+---
+
+## Challenge 4 — Fill Disk Completely
+### Tasks
+- Fill disk:
+  ```bash
+  dd if=/dev/zero of=~/bigfile bs=1M count=50000
+  ```
+- Observe system failures (cannot write logs, apps crash)
+- Delete file and free space:
+  ```bash
+  rm ~/bigfile
+  ```
+- Verify recovery with:
+  ```bash
+  df -h
+  ```
+
+---
+
+## Break–Fix Documentation Requirements
+Add an entry in `notes/break-fix.md` for each challenge:
+- What was broken
+- Exact commands used
+- Symptoms observed
+- Root cause
+- Recovery steps
+- What you learned
+
+**Done when**
+- `notes/break-fix.md` contains **4 complete incident write-ups**
+
+---
+
+# 6️⃣ Final Documentation & Deliverables
+
+## 6.1 Recommended Repository Structure
+```
+project-1-linux-lab/
+├── README.md
+├── notes/
+│   ├── users-permissions.md
+│   ├── processes-services.md
+│   ├── networking-basics.md
+│   ├── system-hardening.md
+│   ├── lynis-hardening.md
+│   └── break-fix.md
+├── scripts/
+│   ├── bulk-create-users.sh
+│   ├── backup-home.sh
+│   └── auth-log-summary.sh
+└── configs/
+    ├── sshd_config.hardened
+    └── ufw-rules.txt
+```
+
+---
+
+## 6.2 Final Report
+Create `Linux-Cyber-Lab-Report.md` containing:
+- Lab architecture diagram (VMs, network mode, host relationships)
+- Step-by-step instructions to recreate lab
+- Summary of all scripts
+- Hardening measures + reasoning
+- Before/after Lynis results
+- Three or more break–fix case studies
+
+**Done when**
+- Someone with basic Linux skills could rebuild your environment using only your report
+
+---
+
+# ✅ Completion Criteria Checklist
+You are finished when ALL items below are true:
+- Ubuntu & Kali lab VMs fully set up
+- SSH hardened + working on custom port
+- Firewall rules correct and documented
+- Custom systemd service running
+- All Bash scripts working and tested
+- Lynis scans improved after fixes
+- Four break–fix incidents documented
+- Repo and documentation are complete
+
+---
+
+# 🎉 Project 1 COMPLETE
+You now have a proper Linux cyber-lab foundation for the rest of the cybersecurity roadmap.
+
+
